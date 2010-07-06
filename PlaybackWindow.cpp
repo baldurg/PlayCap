@@ -280,6 +280,20 @@ PlaybackWindow::pollASyncPlayback()
 			// next_packet_data now contains the next packet to
 			// send, or it's NULL, meaning end of capture.
 		}
+
+                if (!next_packet_data) {
+	char errbuf[PCAP_ERRBUF_SIZE];
+			pcap_close(pcap_file);		
+			pcap_file = pcap_open_offline(filename.text(), errbuf);
+			memset(next_packet_header,0,sizeof(struct pcap_pkthdr));
+			next_packet_data = (const char*)
+				    pcap_next(pcap_file, next_packet_header);
+			playback_start_time = get_time();
+			elapsed_time = 0.0;
+			packets_processed = 0;
+			setPlaybackPacketsProcessed(0);
+			setPlaybackElapsedTime(0.0);
+		}
 		
 		if (next_packet_data) {
 			// See if it's time to send this packet.
